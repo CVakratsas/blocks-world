@@ -14,7 +14,7 @@ def parse_problem(file_path):
         data = file.read()
 
     # Parse objects
-    obj_match = re.search(r'\(:objects (.*?)\)', data, re.DOTALL)
+    obj_match = re.search(r'\(:objects (.*?)\)', data, re.DOTALL | re.IGNORECASE)
     if not obj_match:
         print("No :INIT section found in the file.")
         return []
@@ -22,7 +22,7 @@ def parse_problem(file_path):
         objects = obj_match.group(1).split()
 
     # Parse initial state
-    init_match = re.search(r'\(:INIT\s*(\(.*?\))*\)', data, re.DOTALL)
+    init_match = re.search(r'\(:init\s*(\(.*?\))*\)', data, re.DOTALL | re.IGNORECASE)
     if not init_match:
         print("No :INIT section found in the file.")
     else:
@@ -32,28 +32,16 @@ def parse_problem(file_path):
         # Use regex to extract each item within parentheses
         initial_state = re.findall(r'\((.*?)\)', raw_init)
 
-        # # todo from here on
-        # init_lines = raw_init.splitlines()
-        # for line in init_lines:
-        #     stripped_line = line.strip()
-        #     if not stripped_line:
-        #         continue
-        #
-        #     cleaned_line = stripped_line.strip('()')
-        #     initial_state.append(cleaned_line)
-
-    # # Parse goal state
-    # '\(:goal\s*(\AND(.*?\))*\)' # TO CHANGE
-    # goal_match = re.search(r'\(:goal \(AND(.*?)\)\)', data, re.DOTALL)
-
     # Parse goal state
-    goal_match = re.search(r'\(:goal\s*\(AND\s*(.*?)\)\)', data, re.DOTALL)
+    goal_match = re.search(r'\(:goal\s*\(AND(.*)\)\)', data, re.DOTALL | re.IGNORECASE)
+    if not goal_match:
+        print("No :goal section found in the file.")
+    else:
+        # Captures the raw content inside the AND block
+        raw_goal = goal_match.group(1).strip()
 
-    if goal_match:
-        # # Extract each goal condition and clean it
-        # goal_state = [stmt.strip('()') for stmt in goal_match.group(1).split('\n') if stmt.strip()]
-        # Extract and clean each goal condition
-        goal_state = [stmt.strip('()').strip() for stmt in goal_match.group(1).splitlines() if stmt.strip()]
+        # Extract individual conditions from raw data
+        goal_state = re.findall(r'\((.*?)\)', raw_goal)
 
     # Return parsed data
     return {
