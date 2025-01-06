@@ -1,5 +1,8 @@
 import re
 
+from blocks_world.state import BlockWorldState
+
+
 def parse_problem(file_path):
     """
     Parse a PDDL problem file and return the initial state, goal state, and objects.
@@ -49,6 +52,28 @@ def parse_problem(file_path):
         "initial_state": initial_state,
         "goal_state": goal_state
     }
+
+def extract_state(initial_state_list):
+    """
+    Transform the initial state list into a BlockWorldState object.
+    """
+    clear = set()
+    onTable = set()
+    on = {}
+
+    for state in initial_state_list:
+        parts = state.split()
+        if parts[0] == "CLEAR":
+            clear.add(parts[1])
+        elif parts[0] == "ONTABLE":
+            onTable.add(parts[1])
+        elif parts[0] == "ON":
+            on[parts[1]] = parts[2]
+
+    # Handempty is always assumed True unless explicitly stated otherwise
+    handEmpty = True
+
+    return BlockWorldState(clear=clear, onTable=onTable, on=on, handEmpty=handEmpty)
 
 
 def print_data(input_file, output_file):

@@ -1,6 +1,10 @@
 import sys
+
+from blocks_world.graph import generate_neighbors, build_graph, print_graph
 from blocks_world.solver import solve_problem
-from blocks_world.problem_parser import print_data
+from blocks_world.problem_parser import print_data, extract_state, parse_problem
+from blocks_world.state import move
+
 
 def main():
     if len(sys.argv) != 4:
@@ -11,10 +15,43 @@ def main():
     input_file = sys.argv[2]
     output_file = sys.argv[3]
 
-    print_data(input_file, output_file)
-
+    # print_data(input_file, output_file)
+    #
     # # Solve the problem
     # solve_problem(algorithm, input_file, output_file)
+    #
+    # # Parse the problem
+    # parsed_data = parse_problem(input_file)
+    #
+    # # Extract initial state node
+    # print("Initial State Node (BlockWorldState):")
+    # initial_state_node = extract_state(parsed_data["initial_state"])
+    # print(initial_state_node)
+    #
+    # # Extract goal state node
+    # goal_state_node = extract_state(parsed_data["goal_state"])
+    # print("Goal State Node (BlockWorldState):")
+    # print(goal_state_node)
+
+    # Step 1: Parse the problem and extract the initial state
+    parsed_data = parse_problem(input_file)
+    initial_state_node = extract_state(parsed_data["initial_state"])
+    print("Initial State Node (BlockWorldState):")
+    print(initial_state_node)
+
+    # Step 3: Test the generate_neighbors function
+    print("\nTesting generate_neighbors function:")
+    neighbors = generate_neighbors(initial_state_node)
+    print(f"Generated {len(neighbors)} neighbor states:")
+    for i, neighbor in enumerate(neighbors, 1):
+        print(f"Neighbor {i}: {neighbor}")
+
+    # Step 4: Test the build_graph function
+    print("\nTesting build_graph function:")
+    graph = build_graph(initial_state_node)
+
+    # Print the graph in a readable way
+    print_graph(graph)
 
 
 if __name__ == "__main__":
