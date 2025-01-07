@@ -33,6 +33,15 @@ class BlockWorldState:
     def __hash__(self):
         return hash((frozenset(self.clear), frozenset(self.onTable), frozenset(self.on.items()), self.handEmpty))
 
+    def __lt__(self, other):
+        """
+        Define a less-than comparison for BlockWorldState objects.
+        This is needed for priority queues in heuristic search algorithms.
+        """
+        if not isinstance(other, BlockWorldState):
+            return NotImplemented
+        return id(self) < id(other)  # Use unique ID comparison
+
     def to_dict(self):
         """
         Convert the state to a dictionary representation.

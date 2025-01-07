@@ -4,6 +4,8 @@ import time
 
 from blocks_world.bfs import bfs_solve
 from blocks_world.dfs import dfs_solve
+from blocks_world.heuristic_search import a_star_search, misplaced_blocks_heuristic, distance_to_goal_heuristic, \
+    best_first_search
 from blocks_world.problem_parser import print_data, extract_state, parse_problem
 from blocks_world.utils import save_solution, solve_with_timeout, TimeoutException
 
@@ -15,7 +17,7 @@ def main():
 
     algorithm = sys.argv[1].lower()  # 'bfs', 'dfs', 'best', or 'astar'
     input_file_name = sys.argv[2]  # Input file name
-    output_file = sys.argv[3] # Output file name
+    output_file = sys.argv[3]  # Output file name
     input_file_path = f"./data/problems/{input_file_name}"  # Full path to input file
     output_file_path = f"./data/solutions/{output_file}.txt"  # Output file path
 
@@ -41,6 +43,10 @@ def main():
         solve_function = bfs_solve
     elif algorithm == "dfs":
         solve_function = dfs_solve
+    elif algorithm == "best":
+        solve_function = lambda state, goal: best_first_search(state, goal, misplaced_blocks_heuristic)
+    elif algorithm == "astar":
+        solve_function = lambda state, goal: a_star_search(state, goal, distance_to_goal_heuristic)
     else:
         print(f"Algorithm {algorithm} is not implemented.")
         sys.exit(1)
@@ -58,7 +64,7 @@ def main():
             print(f"Saving to {output_file_path}")
             save_solution(output_file_path, solution)
             print(f"Nodes Explored: {nodes_explored}")
-            print(f"Time Taken: {elapsed_time:.2f} seconds")
+            print(f"Time Taken: {elapsed_time:.4f} seconds")
         else:
             print("No solution found.")
 

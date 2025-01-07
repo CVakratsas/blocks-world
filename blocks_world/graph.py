@@ -24,6 +24,7 @@ def generate_neighbors(state):
 
     return neighbors
 
+
 def build_graph(initial_state):
     """
     Build the state space graph starting from the initial state.
@@ -49,6 +50,7 @@ def build_graph(initial_state):
 
     return graph
 
+
 def print_graph(graph):
     """
     Print the graph dictionary in a readable format and display the total number of nodes.
@@ -65,5 +67,3 @@ def print_graph(graph):
 
     # Print the total number of nodes
     print(f"\nTotal number of nodes: {len(graph)}")
-
-
