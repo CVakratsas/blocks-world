@@ -3,7 +3,7 @@ class BlockWorldState:
     Represents a state in the Blocks World problem.
     """
 
-    def __init__(self, clear=None, onTable=None, on=None, handEmpty=True, action=None):
+    def __init__(self, clear=None, onTable=None, on=None, handEmpty=True, action=None, cost=0):
         """
         Initialize the state.
         :param clear: Set of blocks that are clear (nothing on top).
@@ -17,6 +17,7 @@ class BlockWorldState:
         self.on = on or {}  # Maps a block to what it's on
         self.handEmpty = handEmpty
         self.action = action
+        self.cost = cost  # Ensure all instances have a cost attribute - A*
 
     def __repr__(self):
         return (
@@ -63,7 +64,8 @@ class BlockWorldState:
             onTable=self.onTable.copy(),
             on=self.on.copy(),
             handEmpty=self.handEmpty,
-            action=self.action
+            action=self.action,
+            cost=self.cost
         )
 
     @classmethod
@@ -108,6 +110,9 @@ def move(state, block, from_location, to_location):
 
     # Add action description
     new_state.action = f"Move {block} from {from_location} to {to_location}"
+
+    # Increment cost when a move is made
+    new_state.cost += 1
 
     return new_state
 

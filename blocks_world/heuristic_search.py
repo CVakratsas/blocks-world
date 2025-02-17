@@ -54,6 +54,8 @@ def a_star_search(initial_state, goal_state, heuristic):
     """
     frontier = []  # Priority queue for A*
     heapq.heappush(frontier, (0, initial_state))  # Push (f, state)
+    prev = {initial_state: None}  # Track predecessors
+    moves = {initial_state: None}  # Track moves
     explored = set()
     nodes_explored = 0
 
@@ -62,13 +64,19 @@ def a_star_search(initial_state, goal_state, heuristic):
         nodes_explored += 1
 
         if current_state == goal_state:
-            return reconstruct_path(current_state), nodes_explored
+            return reconstruct_path(prev, moves, initial_state, current_state), nodes_explored
 
         explored.add(current_state)
 
         for child in generate_neighbors(current_state):
             if child not in explored:
-                child.f = child.cost + heuristic(child, goal_state)
+                child.cost = current_state.cost + 1
+                child.f = child.cost + heuristic(child, goal_state)  # f = g + h
+
+                # Track the move leading to this state
+                prev[child] = current_state
+                moves[child] = child.action  # Store the action leading to this state
+
                 heapq.heappush(frontier, (child.f, child))
 
     return None, nodes_explored

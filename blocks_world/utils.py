@@ -22,6 +22,9 @@ def reconstruct_path(prev, moves, start, end):
     path = []
     current = end
     while current != start:
+        if current not in moves:
+            raise KeyError(f"State {current} not found in moves dictionary.")
+
         path.append(moves[current])  # Add the move that led to the current state
         current = prev[current]  # Move to the predecessor
     path.reverse()  # Reverse to get the correct order
