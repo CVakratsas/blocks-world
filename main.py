@@ -10,6 +10,14 @@ from blocks_world.problem_parser import print_data, extract_state, parse_problem
 from blocks_world.utils import save_solution, solve_with_timeout, TimeoutException
 
 
+def run_best_first(state, goal):
+    return best_first_search(state, goal, misplaced_blocks_heuristic)
+
+
+def run_a_star(state, goal):
+    return a_star_search(state, goal, distance_to_goal_heuristic)
+
+
 def main():
     if len(sys.argv) != 4:
         print("Usage: python main.py <algorithm> <input_file> <output_file>")
@@ -32,21 +40,15 @@ def main():
     initial_state = extract_state(parsed_data["initial_state"])
     goal_state = extract_state(parsed_data["goal_state"])
 
-    # Print initial and goal states for verification
-    print("\nInitial State (Parsed):")
-    print(initial_state)
-    print("\nGoal State (Parsed):")
-    print(goal_state)
-
     # Select the algorithm
     if algorithm == "bfs":
         solve_function = bfs_solve
     elif algorithm == "dfs":
         solve_function = dfs_solve
     elif algorithm == "best":
-        solve_function = lambda state, goal: best_first_search(state, goal, misplaced_blocks_heuristic)
+        solve_function = run_best_first  # ✅ Use named function instead of lambda
     elif algorithm == "astar":
-        solve_function = lambda state, goal: a_star_search(state, goal, distance_to_goal_heuristic)
+        solve_function = run_a_star  # ✅ Use named function instead of lambda
     else:
         print(f"Algorithm {algorithm} is not implemented.")
         sys.exit(1)
@@ -60,7 +62,7 @@ def main():
 
         #  Save the solution to the output file
         if solution:
-            print(f"\nSolution Path: {solution}")
+            print(f"Solution Length: {len(solution)} moves")
             print(f"Saving to {output_file_path}")
             save_solution(output_file_path, solution)
             print(f"Nodes Explored: {nodes_explored}")

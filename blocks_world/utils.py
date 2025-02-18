@@ -1,5 +1,6 @@
-import threading
-
+import multiprocessing
+import signal
+import sys
 
 def save_solution(file_path, solution):
     """
@@ -34,6 +35,15 @@ def reconstruct_path(prev, moves, start, end):
 class TimeoutException(Exception):
     pass
 
+# ✅ Windows Function to Run the Solver
+def solve_worker(solve_function, args, queue):
+    """Standalone function to run the solver inside a separate process."""
+    try:
+        result = solve_function(*args)
+        queue.put(result)  # Send result back through the queue
+    except Exception as e:
+        queue.put(e)
+
 
 def solve_with_timeout(solve_function, args, timeout=60):
     """
@@ -43,24 +53,56 @@ def solve_with_timeout(solve_function, args, timeout=60):
     :param timeout: Maximum time allowed (in seconds).
     :return: Result of the function if completed within timeout, otherwise None.
     """
-    result = {}
+    if sys.platform.startswith("win"):  # Windows uses multiprocessing
+        return solve_with_timeout_windows(solve_function, args, timeout)
+    else:  # Linux/macOS uses signals
+        return solve_with_timeout_unix(solve_function, args, timeout)
 
-    def target():
-        try:
-            result["output"] = solve_function(*args)
-        except Exception as e:
-            result["error"] = e
 
-    thread = threading.Thread(target=target)
-    thread.start()
-    thread.join(timeout)
-
-    if thread.is_alive():
-        thread.join(0)
+# ✅ Linux/macOS Version (Using `signal`)
+def solve_with_timeout_unix(solve_function, args, timeout=60):
+    """UNIX-based timeout handling using signal."""
+    def timeout_handler(signum, frame):
         raise TimeoutException("Execution exceeded the time limit of 60 seconds.")
 
-    if "error" in result:
-        raise result["error"]
+    signal.signal(signal.SIGALRM, timeout_handler)  # Set timeout handler
+    signal.alarm(timeout)  # Start countdown
 
-    return result.get("output")  # Pass the full return value of solve_function
+    try:
+        result = solve_function(*args)  # Run the solver
+        signal.alarm(0)  # Cancel alarm if execution finishes in time
+        return result
+    except TimeoutException:
+        raise TimeoutException(f"Execution exceeded the time limit of {timeout} seconds.")
 
+
+# ✅ Windows Version (Using `multiprocessing`)
+def solve_with_timeout_windows(solve_function, args, timeout=60):
+    """Windows timeout handling using multiprocessing (forcefully kills process after timeout)."""
+    queue = multiprocessing.Queue()
+    process = multiprocessing.Process(target=solve_worker, args=(solve_function, args, queue))
+
+    process.start()
+    process.join(timeout)
+
+    if process.is_alive():
+        process.terminate()  # Kill the process if it exceeds timeout
+        process.join()
+        raise TimeoutException(f"Execution exceeded the time limit of {timeout} seconds.")
+
+    if not queue.empty():
+        result = queue.get()
+        if isinstance(result, Exception):
+            raise result  # Re-raise error if function crashed
+        return result
+
+    raise TimeoutException("No result returned from the solve function.")
+
+
+# ✅ Main Timeout Function (Auto-selects Windows or UNIX version)
+def solve_with_timeout(solve_function, args, timeout=60):
+    """Run a function with a timeout."""
+    if sys.platform.startswith("win"):
+        return solve_with_timeout_windows(solve_function, args, timeout)
+    else:
+        return solve_with_timeout_unix(solve_function, args, timeout)
